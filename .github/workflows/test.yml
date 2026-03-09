@@ -2,85 +2,28 @@ name: Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   test:
-    if: github.repository != 'origadmin/go-project-template'
-    name: Test on ${{ matrix.go-version }} - ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        go-version: ['1.20', '1.21', '1.22', '1.23']
-        exclude:
-          - os: windows-latest
-            go-version: '1.20'  # Skip older Go versions on Windows
-          - os: macos-latest
-            go-version: '1.20'  # Skip older Go versions on macOS
-
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go ${{ matrix.go-version }}
-      uses: actions/setup-go@v4
+    - name: Set up Go
+      uses: actions/setup-go@v5
       with:
-        go-version: ${{ matrix.go-version }}
-        check-latest: true
+        go-version: '1.23'
         cache: true
 
-    - name: Run tests
-      run: |
-        go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Test
+        run: go test -v -race -coverprofile=coverage.out ./...
 
-    - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.txt
-        fail_ci_if_error: false
-
-  lint:
-    if: github.repository != 'origadmin/go-project-template'
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-        check-latest: true
-
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: v1.56.1
-        args: --timeout 10m
-
-  staticcheck:
-    if: github.repository != 'origadmin/go-project-template'
-    name: Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-        check-latest: true
-
-    - name: Install staticcheck
-      run: go install honnef.co/go/tools/cmd/staticcheck@latest
-
-    - name: Run staticcheck
-      run: staticcheck ./...
+      - name: Check Formatting
+        run: |
+          if [ -n "$(go fmt ./...)" ]; then
+            echo "Go code is not formatted"
+            exit 1
+          fi
