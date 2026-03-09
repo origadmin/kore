@@ -1,0 +1,32 @@
+# Go
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# JetBrains IDEs (GoLand, IntelliJ, etc.)
+.idea/
+
+# Visual Studio Code
+.vscode/
+.history/
+*.code-workspace
+
+# macOS
+.DS_Store
+
+# Local environment variables
+.env
+.env.*
+!.env.example

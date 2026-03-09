@@ -1,0 +1,71 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    if: github.repository != 'origadmin/go-project-template'
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'go' ]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+        queries: +security-and-quality
+        config-file: ./.github/codeql/codeql-config.yml
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
+    
+    - name: Upload SARIF results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: results.sarif
+        category: "/language:${{matrix.language}}/repo:${{ github.repository }}@${{ github.sha }}"
+
+  gosec:
+    if: github.repository != 'origadmin/go-project-template'
+    name: Run GoSec
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Go Security Check
+      uses: securego/gosec@master
+      with:
+        args: ./...
+    - name: Archive error logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gosec-results-${{ github.repository }}-${{ github.run_id }}
+        path: |
+          gosec-results.json
+          gosec-report.html
+        retention-days: 5
+        if-no-files-found: ignore

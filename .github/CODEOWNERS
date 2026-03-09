@@ -1,0 +1,32 @@
+# Default owners for everything in the repo
+* @origadmin/team-core
+
+# Core framework components
+/framework/ @origadmin/team-framework
+
+# Documentation
+/docs/ @origadmin/team-docs
+
+# Tools and utilities
+/tools/ @origadmin/team-tools
+
+# Examples
+/examples/ @origadmin/team-examples
+
+# GitHub workflows and configurations
+/.github/ @origadmin/team-core @origadmin/team-devops
+
+# Special files
+README.md @origadmin/team-docs
+LICENSE @origadmin/team-core
+SECURITY.md @origadmin/team-security
+CONTRIBUTING.md @origadmin/team-docs
+
+# Go module files
+go.mod @origadmin/team-core
+go.sum @origadmin/team-core
+
+# Build and release files
+Makefile @origadmin/team-devops
+*.yaml @origadmin/team-devops
+*.yml @origadmin/team-devops

@@ -1,0 +1,113 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# Project name (default is the name of the repository)
+project_name: origadmin-framework
+
+# This will be used for the changelog and release notes
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - '^refactor:'
+      - '^style:'
+      - '^perf:'
+
+# Build configuration
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    binary: origadmin
+    no_unique_dist_dir: true
+
+# Archive configuration
+archives:
+  - id: "{{ .ProjectName }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+
+# Checksum configuration
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+# Docker configuration
+dockers:
+  - image_templates:
+      - "ghcr.io/origadmin/framework:{{ .Version }}"
+      - "ghcr.io/origadmin/framework:latest"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --label=org.opencontainers.image.title={{.ProjectName}}
+      - --label=org.opencontainers.image.description={{.ProjectName}}
+      - --label=org.opencontainers.image.version={{.Version}}
+      - --label=org.opencontainers.image.created={{.Date}}
+      - --label=org.opencontainers.image.revision={{.FullCommit}}
+      - --label=org.opencontainers.image.licenses=MIT
+    extra_files:
+      - LICENSE
+      - README.md
+
+# GitHub/GitLab/Gitea releases configuration
+release:
+  github:
+    owner: '{{ .Env.REPO_OWNER | default "origadmin" }}'
+    name: '{{ .Env.REPO_NAME | default ".github" }}'
+  draft: false
+  prerelease: false
+  name_template: '{{ .ProjectName }} {{ .Version }}'
+  footer: |
+    ## Changelog
+
+    See the [CHANGELOG](https://github.com/{{ .Env.REPO_OWNER | default "origadmin" }}/{{ .Env.REPO_NAME | default ".github" }}/blob/main/CHANGELOG.md) for more information.
+
+# Snapcraft configuration (uncomment if needed)
+# snaps:
+#   - name_template: "{{ .ProjectName }}"
+#     publish: true
+#     build_after: ["release"]
+#     summary: "{{ .ProjectName }} - A brief description"
+#     description: |
+#       A more detailed description of your project.
+#     grade: stable
+#     confinement: strict
+#     apps:
+#       {{ .ProjectName }}:
+#         command: {{ .ProjectName }}
+#         plugs: ["home", "network", "network-bind"]
+
+# Homebrew tap configuration (uncomment if needed)
+# brews:
+#   - name: {{ .ProjectName }}
+#     description: "A brief description of your project"
+#     homepage: "https://github.com/origadmin/framework"
+#     license: "MIT"
+#     install: |
+#       bin.install "{{ .ProjectName }}"

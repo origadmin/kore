@@ -1,0 +1,38 @@
+name: "Custom CodeQL Configuration"
+
+disabled-default-packs:
+  # Disable the default query suite to use only the queries we specify
+  - go-security-and-quality
+
+extraction:
+  go:
+    # Set the minimum Go version required for extraction
+    go_version: "1.20"
+
+query-filters:
+  - include:
+      # Include security queries
+      - "security"
+      - "correctness"
+      - "error"
+    exclude:
+      # Exclude queries with high false positive rates
+      - "go/incorrect-integer-conversion"
+      - "go/unsafe-ptr-arithmetic"
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+    exclude:
+      # Exclude specific queries with high false positive rates
+      - "go/incorrect-integer-conversion"
+      - "go/unsafe-ptr-arithmetic"
+
+paths-ignore:
+  - "**/testdata/**"
+  - "**/vendor/**"
+  - "**/third_party/**"
+  - "**/examples/**"
+
+threads: 0  # Use all available cores
+memory: 0   # Use default memory settings
